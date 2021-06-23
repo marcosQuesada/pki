@@ -60,13 +60,13 @@ func LoadPublicKey(publicKeyPath string) (*rsa.PublicKey, error) {
 	return convertBytesToPublicKey(bytes)
 }
 
-func Encrypt(publicKey *rsa.PublicKey, plainText string) (string, error) {
-	cipher, err := rsa.EncryptOAEP(sha512.New(), rand.Reader, publicKey, []byte(plainText), nil)
+func Encrypt(publicKey *rsa.PublicKey, plainText []byte) ([]byte, error) {
+	cipher, err := rsa.EncryptOAEP(sha512.New(), rand.Reader, publicKey, plainText, nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return cipherToPemString(cipher), nil
+	return cipherToPemBytes(cipher), nil
 }
 
 func LoadPrivateKey(privateKeyPath string) (*rsa.PrivateKey, error) {
@@ -78,39 +78,46 @@ func LoadPrivateKey(privateKeyPath string) (*rsa.PrivateKey, error) {
 	return convertBytesToPrivateKey(bytes)
 }
 
-func Decrypt(privateKey *rsa.PrivateKey, encryptedMessage string) (string, error) {
+func Decrypt(privateKey *rsa.PrivateKey, encryptedMessage []byte) (string, error) {
 	plainMessage, err := rsa.DecryptOAEP(
 		sha512.New(),
 		rand.Reader,
 		privateKey,
-		pemStringToCipher(encryptedMessage),
+		pemBytesToCipher(encryptedMessage),
 		nil,
 	)
 
 	return string(plainMessage), err
 }
 
-func Sign(privateKey *rsa.PrivateKey, plainText string) ([]byte, error) {
-	msgHash := sha512.New()
-	_, err := msgHash.Write([]byte(plainText))
+func Sign(privateKey *rsa.PrivateKey, plainText []byte) ([]byte, error) {
+	msgHashSum, err := hash(plainText)
 	if err != nil {
 		return nil, err
 	}
-	msgHashSum := msgHash.Sum(nil)
+
 	return rsa.SignPSS(rand.Reader,privateKey, crypto.SHA512, msgHashSum, nil)
 }
 
-func VerifySign(publicKey *rsa.PublicKey, signature []byte, plainText string) error {
-	msgHash := sha512.New()
-	_, err := msgHash.Write([]byte(plainText))
+func VerifySign(publicKey *rsa.PublicKey, signature []byte, plainText []byte) error {
+	msgHashSum, err := hash(plainText)
 	if err != nil {
 		return err
 	}
-	msgHashSum := msgHash.Sum(nil)
 
 	return rsa.VerifyPSS(publicKey, crypto.SHA512, msgHashSum, signature, nil)
 }
 
+func hash(plainText []byte) ([]byte, error) {
+	msgHash := sha512.New()
+	_, err := msgHash.Write(plainText)
+	if err != nil {
+		return nil, err
+	}
+	msgHashSum := msgHash.Sum(nil)
+
+	return msgHashSum, nil
+}
 
 func convertBytesToPublicKey(keyBytes []byte) (*rsa.PublicKey, error) {
 	var err error
@@ -134,15 +141,13 @@ func convertBytesToPublicKey(keyBytes []byte) (*rsa.PublicKey, error) {
 	return publicKey, nil
 }
 
-func cipherToPemString(cipher []byte) string {
-	return string(
-		pem.EncodeToMemory(
+func cipherToPemBytes(cipher []byte) []byte {
+	return pem.EncodeToMemory(
 			&pem.Block{
 				Type: "MESSAGE",
 				Bytes: cipher,
 			},
-		),
-	)
+		)
 }
 
 func convertBytesToPrivateKey(keyBytes []byte) (*rsa.PrivateKey, error) {
@@ -167,8 +172,8 @@ func convertBytesToPrivateKey(keyBytes []byte) (*rsa.PrivateKey, error) {
 	return privateKey, nil
 }
 
-func pemStringToCipher(encryptedMessage string) []byte {
-	b, _ := pem.Decode([]byte(encryptedMessage))
+func pemBytesToCipher(encryptedMessage []byte) []byte {
+	b, _ := pem.Decode(encryptedMessage)
 
 	return b.Bytes
 }

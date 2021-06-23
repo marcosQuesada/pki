@@ -43,7 +43,7 @@ GP2WGi4iWs4XlB2DwOAiQuuNnCqfDuHWge2O5PRP18gt+/fJOzPHjWYrTTqEh6Ga
 		if err != nil {
 			log.Fatalln(err)
 		}
-		decryptedMessage, err := pki.Decrypt(privateKey, encryptedMessage)
+		decryptedMessage, err := pki.Decrypt(privateKey, []byte(encryptedMessage))
 		if err != nil {
 			log.Fatalln(err)
 		}

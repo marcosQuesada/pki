@@ -20,12 +20,11 @@ var validateCmd = &cobra.Command{
 			log.Fatalln(err)
 		}
 
-
 		signature, err := base64.StdEncoding.DecodeString(encodedSignature)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		err = pki.VerifySign(publicKey, signature,  message)
+		err = pki.VerifySign(publicKey, signature,  []byte(message))
 		if err != nil {
 			log.Fatalln(err)
 		}

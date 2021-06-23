@@ -19,7 +19,7 @@ var signCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalln(err)
 		}
-		signature, err := pki.Sign(privateKey, message)
+		signature, err := pki.Sign(privateKey, []byte(message))
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -31,5 +31,4 @@ var signCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(signCmd)
-
 }

@@ -11,7 +11,7 @@ func TestClientEncryptsUsingPublicKeyServerDecryptUsingPrivateKey(t *testing.T) 
 		log.Fatalf("unexpected error generating keys, err %v", err)
 	}
 
-	plainText := "This is a very secret message :)"
+	plainText := []byte("This is a very secret message :)")
 
 	encryptedMessage, err := Encrypt(srvKeys.publicKey, plainText)
 	if err != nil {
@@ -23,7 +23,7 @@ func TestClientEncryptsUsingPublicKeyServerDecryptUsingPrivateKey(t *testing.T) 
 		log.Fatalf("unexpected error decrypting message, error %v", err)
 	}
 
-	if plainMessage != plainText {
+	if plainMessage != string(plainText) {
 		t.Fatalf("contents do not match, expected %s got %s", plainText, plainMessage)
 	}
 }
@@ -34,7 +34,7 @@ func TestClientSignsEncryptedMessageAndServerValidatesSignature(t *testing.T) {
 		log.Fatalf("unexpected error generating keys, err %v", err)
 	}
 
-	plainText := "This is a very secret message :)"
+	plainText := []byte("This is a very secret message :)")
 
 	signature, err := Sign(clKeys.privateKey, plainText)
 	if err != nil {

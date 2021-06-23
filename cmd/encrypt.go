@@ -34,12 +34,12 @@ var encryptCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalln(err)
 		}
-		encryptedMessage, err := pki.Encrypt(publicKey, message)
+		encryptedMessage, err := pki.Encrypt(publicKey, []byte(message))
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		fmt.Println(encryptedMessage)
+		fmt.Println(string(encryptedMessage))
 	},
 }
 
